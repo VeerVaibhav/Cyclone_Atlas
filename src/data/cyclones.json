@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Amphan",
+    "year": 2020,
+    "states": ["West Bengal", "Odisha"],
+    "intensity": "Super Cyclonic Storm",
+    "impact": ["Flooding", "Power Outage", "Storm Surge"]
+  },
+  {
+    "name": "Fani",
+    "year": 2019,
+    "states": ["Odisha", "Andhra Pradesh", "West Bengal"],
+    "intensity": "Extremely Severe",
+    "impact": ["Structural Damage", "Power Outage", "Heavy Rainfall"]
+  },
+  {
+    "name": "Phailin",
+    "year": 2013,
+    "states": ["Odisha", "Andhra Pradesh"],
+    "intensity": "Very Severe",
+    "impact": ["Storm Surge", "Evacuation", "Agricultural Loss"]
+  },
+  {
+    "name": "Hudhud",
+    "year": 2014,
+    "states": ["Andhra Pradesh", "Odisha"],
+    "intensity": "Extremely Severe",
+    "impact": ["Urban Flooding", "Infrastructure Damage", "Telecommunication Loss"]
+  },
+  {
+    "name": "Vardah",
+    "year": 2016,
+    "states": ["Tamil Nadu", "Andhra Pradesh"],
+    "intensity": "Very Severe",
+    "impact": ["Tree Fall", "Power Outage", "Flash Floods"]
+  },
+  {
+    "name": "Ockhi",
+    "year": 2017,
+    "states": ["Kerala", "Tamil Nadu", "Lakshadweep"],
+    "intensity": "Very Severe",
+    "impact": ["Marine Casualties", "High Winds", "Rainfall"]
+  },
+  {
+    "name": "Gaja",
+    "year": 2018,
+    "states": ["Tamil Nadu", "Puducherry"],
+    "intensity": "Severe",
+    "impact": ["Crop Damage", "Livestock Loss", "Building Damage"]
+  },
+  {
+    "name": "Tauktae",
+    "year": 2021,
+    "states": ["Gujarat", "Maharashtra", "Goa", "Karnataka", "Kerala"],
+    "intensity": "Extremely Severe",
+    "impact": ["Coastal Erosion", "Heavy Rain", "Power Disruption"]
+  },
+  {
+    "name": "Yaas",
+    "year": 2021,
+    "states": ["Odisha", "West Bengal"],
+    "intensity": "Very Severe",
+    "impact": ["Tidal Waves", "Flooding", "Saline Inundation"]
+  },
+  {
+    "name": "Biparjoy",
+    "year": 2023,
+    "states": ["Gujarat", "Rajasthan"],
+    "intensity": "Extremely Severe",
+    "impact": ["Desert Rainfall", "High Winds", "Port Damage"]
+  }
+]

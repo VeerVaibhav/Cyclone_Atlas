@@ -1,0 +1,62 @@
+[
+  {
+    "state": "Gujarat",
+    "region": "West Coast",
+    "riskLevel": "High"
+  },
+  {
+    "state": "Maharashtra",
+    "region": "West Coast",
+    "riskLevel": "Medium"
+  },
+  {
+    "state": "Goa",
+    "region": "West Coast",
+    "riskLevel": "Low"
+  },
+  {
+    "state": "Karnataka",
+    "region": "West Coast",
+    "riskLevel": "Low"
+  },
+  {
+    "state": "Kerala",
+    "region": "West Coast",
+    "riskLevel": "Medium"
+  },
+  {
+    "state": "Tamil Nadu",
+    "region": "East Coast",
+    "riskLevel": "High"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "region": "East Coast",
+    "riskLevel": "Very High"
+  },
+  {
+    "state": "Odisha",
+    "region": "East Coast",
+    "riskLevel": "Very High"
+  },
+  {
+    "state": "West Bengal",
+    "region": "East Coast",
+    "riskLevel": "Very High"
+  },
+  {
+    "state": "Puducherry",
+    "region": "East Coast",
+    "riskLevel": "Medium"
+  },
+  {
+    "state": "Lakshadweep",
+    "region": "Islands",
+    "riskLevel": "Low"
+  },
+  {
+    "state": "Andaman and Nicobar Islands",
+    "region": "Islands",
+    "riskLevel": "Medium"
+  }
+]
