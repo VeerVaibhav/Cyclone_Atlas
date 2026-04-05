@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, Send, MessageSquare, Loader2, Info } from "lucide-react";
+import { X, Send, MessageSquare, Loader2, Info, Activity, ShieldCheck } from "lucide-react";
 import { chatWithGemini } from "@/lib/gemini";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "model";
@@ -13,15 +14,12 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isApiReady, setIsApiReady] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isLoading]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -37,7 +35,8 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
       setMessages(prev => [...prev, modelMsg]);
     } catch (error) {
       console.error("Gemini Error:", error);
-      const errMsg: Message = { role: "model", parts: [{ text: "Error communicating with AI. Please check your connection." }] };
+      setIsApiReady(false);
+      const errMsg: Message = { role: "model", parts: [{ text: "System connection error. Please verify API configuration." }] };
       setMessages(prev => [...prev, errMsg]);
     } finally {
       setIsLoading(false);
@@ -48,51 +47,71 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
 
   return (
     <div
-      className="fixed right-0 top-0 h-full w-full md:w-96 bg-slate-900 border-l border-slate-800 z-[60] flex flex-col shadow-2xl"
+      className="fixed right-0 top-0 h-full w-full md:w-[400px] bg-slate-950/80 backdrop-blur-2xl border-l border-white/5 z-[150] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)] animate-[slide-left_0.4s_ease-out]"
     >
       {/* Header */}
-      <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-cyan-500 rounded text-slate-950">
-            <MessageSquare className="w-4 h-4" />
+      <div className="p-6 border-b border-white/5 flex items-center justify-between bg-slate-950/40">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-accent-cyan rounded-xl text-slate-950 shadow-lg shadow-accent-cyan/20">
+            <MessageSquare className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-tight text-white">Cyclone AI Assistant</h3>
-            <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Mission Support Active</p>
+            <h3 className="text-sm font-black uppercase tracking-tight text-white">Cyclone Intelligence</h3>
+            <div className="flex items-center gap-2 mt-0.5">
+                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isApiReady ? "bg-emerald-500" : "bg-red-500")} />
+                <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">
+                    {isApiReady ? "Neural Link Active" : "System Offline"}
+                </p>
+            </div>
           </div>
         </div>
-        <button onClick={onClose} className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl text-slate-500 hover:text-white transition-all active:scale-90">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50 px-6">
-            <Info className="w-8 h-8 text-cyan-400" />
-            <p className="text-sm text-slate-300">
-              Ask me about historical cyclones like Amphan, or how to prepare for the next storm.
-            </p>
+          <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40 px-8">
+            <div className="p-4 bg-slate-900 rounded-3xl border border-white/5">
+                <Activity className="w-10 h-10 text-accent-cyan" />
+            </div>
+            <div className="space-y-2">
+                <p className="text-xs font-bold text-white uppercase tracking-widest leading-relaxed">
+                    Awaiting Directives
+                </p>
+                <p className="text-[11px] text-slate-400 font-medium">
+                    Ask about historical cyclones, coastal safety, or meteorological patterns in the Indian subcontinent.
+                </p>
+            </div>
+            <div className="grid grid-cols-1 gap-2 w-full">
+                <QuickPrompt text="Tell me about Cyclone Amphan" onClick={() => setInput("Tell me about Cyclone Amphan")} />
+                <QuickPrompt text="What are the safest states?" onClick={() => setInput("Which Indian states are least affected by cyclones?")} />
+            </div>
           </div>
         )}
+        
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+          <div key={i} className={cn("flex w-full animate-slide-up", msg.role === "user" ? "justify-end" : "justify-start")}>
             <div 
-              className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+              className={cn(
+                "max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed",
                 msg.role === "user" 
-                ? "bg-blue-600 text-white rounded-tr-none" 
-                : "bg-slate-800 text-slate-200 border border-slate-700 rounded-tl-none"
-              }`}
+                ? "bg-accent-blue text-white rounded-tr-none shadow-lg shadow-accent-blue/10" 
+                : "bg-slate-900 text-slate-200 border border-white/5 rounded-tl-none shadow-xl"
+              )}
             >
               {msg.parts[0].text}
             </div>
           </div>
         ))}
+        
         {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-slate-800 p-3 rounded-2xl rounded-tl-none border border-slate-700">
-              <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />
+          <div className="flex justify-start animate-slide-up">
+            <div className="bg-slate-900 p-4 rounded-2xl rounded-tl-none border border-white/5 shadow-xl flex items-center gap-3">
+              <Loader2 className="w-4 h-4 text-accent-cyan animate-spin" />
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-black">Processing Signal...</span>
             </div>
           </div>
         )}
@@ -100,25 +119,49 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-slate-800 bg-slate-900">
-        <div className="flex items-center gap-2 p-1.5 bg-slate-950 rounded-xl border border-slate-800 focus-within:border-cyan-400/50 transition-colors">
+      <div className="p-6 border-t border-white/5 bg-slate-950/60">
+        <div className="flex items-center gap-3 p-2 bg-slate-900 rounded-2xl border border-white/5 focus-within:border-accent-cyan/50 transition-all shadow-inner">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about cyclone history..."
-            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-200 px-3 outline-none"
+            placeholder="Search Intelligence Database..."
+            className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-white px-3 outline-none placeholder:text-slate-600 font-medium"
           />
           <button 
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="p-2 bg-cyan-500 text-slate-950 rounded-lg hover:bg-white disabled:opacity-50 transition-all"
+            className="p-3 bg-accent-cyan text-slate-950 rounded-xl hover:bg-white disabled:opacity-30 active:scale-90 transition-all shadow-lg shadow-accent-cyan/20"
           >
             <Send className="w-4 h-4" />
           </button>
         </div>
+        <div className="mt-4 flex items-center justify-center gap-2 text-slate-600">
+            <ShieldCheck className="w-3 h-3" />
+            <p className="text-[9px] font-mono uppercase tracking-widest font-bold">
+                Safety First Protocol Enabled
+            </p>
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes slide-left {
+          from { transform: translateX(100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
     </div>
   );
+}
+
+function QuickPrompt({ text, onClick }: { text: string; onClick: () => void }) {
+    return (
+        <button 
+            onClick={onClick}
+            className="text-left px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-accent-cyan hover:border-accent-cyan/30 hover:bg-accent-cyan/5 transition-all"
+        >
+            {text}
+        </button>
+    );
 }
