@@ -2,71 +2,111 @@
   {
     "name": "Amphan",
     "year": 2020,
+    "date": "May 20, 2020",
     "states": ["West Bengal", "Odisha"],
     "intensity": "Super Cyclonic Storm",
-    "impact": ["Flooding", "Power Outage", "Storm Surge"]
+    "landfall": "Bakkhali, West Bengal",
+    "impact": ["Flooding", "Power Outage", "Storm Surge"],
+    "description": "One of the strongest cyclones to hit West Bengal in decades, causing massive destruction in the Sundarbans and Kolkata.",
+    "level": "Critical"
   },
   {
     "name": "Fani",
     "year": 2019,
+    "date": "May 3, 2019",
     "states": ["Odisha", "Andhra Pradesh", "West Bengal"],
     "intensity": "Extremely Severe",
-    "impact": ["Structural Damage", "Power Outage", "Heavy Rainfall"]
+    "landfall": "Puri, Odisha",
+    "impact": ["Structural Damage", "Power Outage", "Heavy Rainfall"],
+    "description": "A rare pre-monsoon extremely severe cyclonic storm that made landfall near Puri with winds gusting up to 200 km/h.",
+    "level": "Extreme"
   },
   {
     "name": "Phailin",
     "year": 2013,
+    "date": "October 12, 2013",
     "states": ["Odisha", "Andhra Pradesh"],
     "intensity": "Very Severe",
-    "impact": ["Storm Surge", "Evacuation", "Agricultural Loss"]
+    "landfall": "Gopalpur, Odisha",
+    "impact": ["Storm Surge", "Evacuation", "Agricultural Loss"],
+    "description": "Prompted India's largest evacuation in 23 years, significantly minimizing casualties despite its massive intensity.",
+    "level": "High"
   },
   {
     "name": "Hudhud",
     "year": 2014,
+    "date": "October 12, 2014",
     "states": ["Andhra Pradesh", "Odisha"],
     "intensity": "Extremely Severe",
-    "impact": ["Urban Flooding", "Infrastructure Damage", "Telecommunication Loss"]
+    "landfall": "Visakhapatnam, Andhra Pradesh",
+    "impact": ["Urban Flooding", "Infrastructure Damage", "Telecommunication Loss"],
+    "description": "Directly hit the major city of Visakhapatnam, causing extensive damage to urban infrastructure and trees.",
+    "level": "Extreme"
   },
   {
     "name": "Vardah",
     "year": 2016,
+    "date": "December 12, 2016",
     "states": ["Tamil Nadu", "Andhra Pradesh"],
     "intensity": "Very Severe",
-    "impact": ["Tree Fall", "Power Outage", "Flash Floods"]
+    "landfall": "Chennai, Tamil Nadu",
+    "impact": ["Tree Fall", "Power Outage", "Flash Floods"],
+    "description": "A severe storm that crossed the Chennai coast, uprooting thousands of trees and disrupting the city's power grid for days.",
+    "level": "High"
   },
   {
     "name": "Ockhi",
     "year": 2017,
+    "date": "November 29, 2017",
     "states": ["Kerala", "Tamil Nadu", "Lakshadweep"],
     "intensity": "Very Severe",
-    "impact": ["Marine Casualties", "High Winds", "Rainfall"]
+    "landfall": "Near Kanyakumari (Crossed)",
+    "impact": ["Marine Casualties", "High Winds", "Rainfall"],
+    "description": "Notable for its unusual path and rapid intensification, causing heavy losses to the fishing community in the Arabian Sea.",
+    "level": "High"
   },
   {
     "name": "Gaja",
     "year": 2018,
+    "date": "November 16, 2018",
     "states": ["Tamil Nadu", "Puducherry"],
     "intensity": "Severe",
-    "impact": ["Crop Damage", "Livestock Loss", "Building Damage"]
+    "landfall": "Vedaranyam, Tamil Nadu",
+    "impact": ["Crop Damage", "Livestock Loss", "Building Damage"],
+    "description": "Devastated the agricultural delta region of Tamil Nadu, particularly affecting coconut groves and orchards.",
+    "level": "Moderate"
   },
   {
     "name": "Tauktae",
     "year": 2021,
+    "date": "May 17, 2021",
     "states": ["Gujarat", "Maharashtra", "Goa", "Karnataka", "Kerala"],
     "intensity": "Extremely Severe",
-    "impact": ["Coastal Erosion", "Heavy Rain", "Power Disruption"]
+    "landfall": "Una, Gujarat",
+    "impact": ["Coastal Erosion", "Heavy Rain", "Power Disruption"],
+    "description": "The strongest cyclone to strike Gujarat in over two decades, occurring during the peak of the COVID-19 pandemic.",
+    "level": "Extreme"
   },
   {
     "name": "Yaas",
     "year": 2021,
+    "date": "May 26, 2021",
     "states": ["Odisha", "West Bengal"],
     "intensity": "Very Severe",
-    "impact": ["Tidal Waves", "Flooding", "Saline Inundation"]
+    "landfall": "Dhamra, Odisha",
+    "impact": ["Tidal Waves", "Flooding", "Saline Inundation"],
+    "description": "Caused massive storm surges that breached embankments, leading to saline water flooding in agricultural lands.",
+    "level": "High"
   },
   {
     "name": "Biparjoy",
     "year": 2023,
+    "date": "June 15, 2023",
     "states": ["Gujarat", "Rajasthan"],
     "intensity": "Extremely Severe",
-    "impact": ["Desert Rainfall", "High Winds", "Port Damage"]
+    "landfall": "Jakhau Port, Gujarat",
+    "impact": ["Desert Rainfall", "High Winds", "Port Damage"],
+    "description": "Had the longest lifespan of any cyclone in the Arabian Sea, eventually bringing rare heavy rains to the Rajasthan desert.",
+    "level": "Extreme"
   }
 ]
