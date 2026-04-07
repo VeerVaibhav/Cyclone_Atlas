@@ -3,17 +3,18 @@
 import React, { useState } from 'react';
 import coastalData from "@/data/coastalRegions.json";
 import { cn } from '@/lib/utils';
-import { Wind, AlertCircle, Info } from 'lucide-react';
+import { Wind, Info } from 'lucide-react';
 
 interface CoastalMapProps {
   highlightedStates?: string[];
+  activeCyclone?: { name: string; year: number; intensity: string } | null;
   onStateClick?: (state: string) => void;
 }
 
-export default function CoastalMap({ highlightedStates = [], onStateClick }: CoastalMapProps) {
+export default function CoastalMap({ highlightedStates = [], activeCyclone, onStateClick }: CoastalMapProps) {
   const [hoveredState, setHoveredState] = useState<string | null>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Refined simplified coordinates for Indian coastal states
   const states = [
     { name: "Gujarat", path: "M 20,40 Q 30,50 25,70 L 40,80 L 45,70 L 30,40 Z" },
     { name: "Maharashtra", path: "M 40,80 L 50,110 L 45,130 L 35,110 Z" },
@@ -26,7 +27,6 @@ export default function CoastalMap({ highlightedStates = [], onStateClick }: Coa
     { name: "West Bengal", path: "M 150,70 L 165,65 L 170,50 L 145,55 Z" },
   ];
 
-  // Example Cyclone Paths (Animated)
   const cyclonePaths = [
     { id: "amphan-track", path: "M 180,150 Q 160,100 155,65", color: "#ef4444", name: "Amphan Track" },
     { id: "fani-track", path: "M 160,180 Q 140,120 135,85", color: "#f97316", name: "Fani Track" },
@@ -45,8 +45,14 @@ export default function CoastalMap({ highlightedStates = [], onStateClick }: Coa
     }
   };
 
+  const handleMouseMove = (e: React.MouseEvent) => {
+    setMousePos({ x: e.clientX, y: e.clientY });
+  };
+
+  const currentHoveredRegion = coastalData.find(r => r.state === hoveredState);
+
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 min-h-[500px]">
+    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 min-h-[500px]" onMouseMove={handleMouseMove}>
       {/* Legend */}
       <div className="absolute top-4 left-4 glass-card p-4 z-10 space-y-3 min-w-[140px]">
         <div className="flex items-center gap-2 mb-1">
@@ -60,6 +66,41 @@ export default function CoastalMap({ highlightedStates = [], onStateClick }: Coa
           <LegendItem color="#22c55e" label="Low Risk" />
         </div>
       </div>
+
+      {/* Tooltip */}
+      {hoveredState && currentHoveredRegion && (
+        <div 
+            className="fixed z-[300] pointer-events-none glass-card p-4 shadow-2xl animate-fade-in border-accent-cyan/30 min-w-[180px]"
+            style={{ left: mousePos.x + 20, top: mousePos.y - 20 }}
+        >
+            <div className="space-y-3">
+                <div className="flex justify-between items-center gap-4">
+                    <span className="text-[10px] font-mono text-accent-cyan uppercase tracking-widest font-black">{hoveredState}</span>
+                    <span className={cn(
+                        "text-[8px] font-black uppercase px-2 py-0.5 rounded-full border",
+                        currentHoveredRegion.riskLevel === "Very High" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-slate-950 text-slate-400 border-white/5"
+                    )}>{currentHoveredRegion.riskLevel}</span>
+                </div>
+                
+                {activeCyclone && highlightedStates.includes(hoveredState) && (
+                    <div className="pt-2 border-t border-white/5 space-y-2">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Impacted by</span>
+                            <span className="text-sm font-black text-white uppercase tracking-tight">{activeCyclone.name} ({activeCyclone.year})</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Intensity Level</span>
+                            <span className="text-[10px] font-bold text-accent-cyan uppercase tracking-tight">{activeCyclone.intensity}</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="pt-2 border-t border-white/5">
+                    <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none">Sector: {currentHoveredRegion.region}</span>
+                </div>
+            </div>
+        </div>
+      )}
 
       <svg viewBox="0 0 200 250" className="w-full h-full max-h-[450px] drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]">
         {/* Mainland India Silhouette */}
@@ -90,9 +131,7 @@ export default function CoastalMap({ highlightedStates = [], onStateClick }: Coa
               onMouseEnter={() => setHoveredState(region.state)}
               onMouseLeave={() => setHoveredState(null)}
               onClick={() => onStateClick?.(region.state)}
-            >
-              <title>{`${region.state}: ${region.riskLevel} Risk`}</title>
-            </path>
+            />
           );
         })}
 
@@ -136,6 +175,7 @@ export default function CoastalMap({ highlightedStates = [], onStateClick }: Coa
     </div>
   );
 }
+
 
 function LegendItem({ color, label }: { color: string; label: string }) {
     return (

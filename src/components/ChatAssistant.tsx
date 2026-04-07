@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, Send, MessageSquare, Loader2, Info, Activity, ShieldCheck } from "lucide-react";
+import { X, Send, MessageSquare, Loader2, Activity, ShieldCheck, AlertCircle } from "lucide-react";
 import { chatWithGemini } from "@/lib/gemini";
 import { cn } from "@/lib/utils";
 
@@ -14,30 +14,34 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isApiReady, setIsApiReady] = useState(true);
+  const [errorState, setErrorState] = useState<"none" | "api_error" | "no_key">("none");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
+  const handleSend = async (overrideInput?: string) => {
+    const messageText = overrideInput || input;
+    if (!messageText.trim() || isLoading) return;
 
-    const userMsg: Message = { role: "user", parts: [{ text: input }] };
+    setErrorState("none");
+    const userMsg: Message = { role: "user", parts: [{ text: messageText }] };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const responseText = await chatWithGemini(input, messages);
+      const responseText = await chatWithGemini(messageText, messages);
       const modelMsg: Message = { role: "model", parts: [{ text: responseText }] };
       setMessages(prev => [...prev, modelMsg]);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Gemini Error:", error);
-      setIsApiReady(false);
-      const errMsg: Message = { role: "model", parts: [{ text: "System connection error. Please verify API configuration." }] };
-      setMessages(prev => [...prev, errMsg]);
+      if (error instanceof Error && error.message === "API_KEY_MISSING") {
+        setErrorState("no_key");
+      } else {
+        setErrorState("api_error");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -58,9 +62,9 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
           <div>
             <h3 className="text-sm font-black uppercase tracking-tight text-white">Cyclone Intelligence</h3>
             <div className="flex items-center gap-2 mt-0.5">
-                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", isApiReady ? "bg-emerald-500" : "bg-red-500")} />
+                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", errorState === "none" ? "bg-emerald-500" : "bg-red-500")} />
                 <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest font-bold">
-                    {isApiReady ? "Neural Link Active" : "System Offline"}
+                    {errorState === "none" ? "Neural Link Active" : "System Offline"}
                 </p>
             </div>
           </div>
@@ -86,8 +90,12 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
                 </p>
             </div>
             <div className="grid grid-cols-1 gap-2 w-full">
-                <QuickPrompt text="Tell me about Cyclone Amphan" onClick={() => setInput("Tell me about Cyclone Amphan")} />
-                <QuickPrompt text="What are the safest states?" onClick={() => setInput("Which Indian states are least affected by cyclones?")} />
+                <QuickPrompt text="Tell me about Cyclone Amphan" onClick={() => {
+                    handleSend("Tell me about Cyclone Amphan");
+                }} />
+                <QuickPrompt text="What are the safest states?" onClick={() => {
+                    handleSend("Which Indian states are least affected by cyclones?");
+                }} />
             </div>
           </div>
         )}
@@ -96,13 +104,15 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
           <div key={i} className={cn("flex w-full animate-slide-up", msg.role === "user" ? "justify-end" : "justify-start")}>
             <div 
               className={cn(
-                "max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed",
+                "max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-xl custom-scrollbar max-h-[300px] overflow-y-auto break-words",
                 msg.role === "user" 
-                ? "bg-accent-blue text-white rounded-tr-none shadow-lg shadow-accent-blue/10" 
-                : "bg-slate-900 text-slate-200 border border-white/5 rounded-tl-none shadow-xl"
+                ? "bg-accent-blue text-white rounded-tr-none" 
+                : "bg-slate-900 text-slate-200 border border-white/5 rounded-tl-none prose prose-invert prose-p:leading-snug prose-sm"
               )}
             >
-              {msg.parts[0].text}
+              <div 
+                  dangerouslySetInnerHTML={{ __html: msg.parts[0].text }} 
+              />
             </div>
           </div>
         ))}
@@ -115,23 +125,40 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
             </div>
           </div>
         )}
+
+        {errorState !== "none" && (
+            <div className="flex flex-col items-center gap-4 p-6 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
+                <AlertCircle className="w-8 h-8 text-red-500" />
+                <div className="space-y-1">
+                    <p className="text-xs font-black uppercase text-red-500">
+                        {errorState === "no_key" ? "API Key Missing" : "Connection Refused"}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                        {errorState === "no_key" 
+                            ? "Please configure NEXT_PUBLIC_GEMINI_API_KEY in your environment variables." 
+                            : "Intelligence services are currently unreachable. Please attempt reconnect later."}
+                    </p>
+                </div>
+            </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
+      {/* Input Area */}
       <div className="p-6 border-t border-white/5 bg-slate-950/60">
         <div className="flex items-center gap-3 p-2 bg-slate-900 rounded-2xl border border-white/5 focus-within:border-accent-cyan/50 transition-all shadow-inner">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Search Intelligence Database..."
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+            placeholder={errorState === "no_key" ? "System Offline" : "Search Intelligence Database..."}
+            disabled={errorState === "no_key"}
             className="flex-1 bg-transparent border-none focus:ring-0 text-sm text-white px-3 outline-none placeholder:text-slate-600 font-medium"
           />
           <button 
-            onClick={handleSend}
-            disabled={isLoading || !input.trim()}
+            onClick={() => handleSend()}
+            disabled={isLoading || !input.trim() || errorState === "no_key"}
             className="p-3 bg-accent-cyan text-slate-950 rounded-xl hover:bg-white disabled:opacity-30 active:scale-90 transition-all shadow-lg shadow-accent-cyan/20"
           >
             <Send className="w-4 h-4" />
@@ -159,7 +186,7 @@ function QuickPrompt({ text, onClick }: { text: string; onClick: () => void }) {
     return (
         <button 
             onClick={onClick}
-            className="text-left px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-accent-cyan hover:border-accent-cyan/30 hover:bg-accent-cyan/5 transition-all"
+            className="text-left px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-accent-cyan hover:border-accent-cyan/30 hover:bg-accent-cyan/5 transition-all focus:outline-none focus:ring-1 focus:ring-accent-cyan/30"
         >
             {text}
         </button>

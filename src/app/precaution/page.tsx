@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import ChatAssistant from "@/components/ChatAssistant";
-import { ShieldCheck, AlertTriangle, Home, Zap, Phone, Package, Droplets, Wind, Info, CheckCircle2 } from "lucide-react";
+import { ShieldCheck, AlertTriangle, Home, Zap, Phone, Package, Droplets, Wind, CheckCircle2 } from "lucide-react";
 
 export default function PrecautionPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);

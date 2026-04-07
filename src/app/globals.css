@@ -29,15 +29,25 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   --animate-gradient-x: gradient-x 15s ease infinite;
   --animate-pulse-glow: pulse-glow 3s ease-in-out infinite;
   --animate-float: float 5s ease-in-out infinite;
   --animate-slide-up: slide-up 0.6s ease-out forwards;
+  --animate-fade-in: fade-in 0.5s ease-out forwards;
 }
 
 :root {
   --background: #020617;
   --foreground: #f8fafc;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -48,19 +58,19 @@ body {
 }
 
 .glass-navbar {
-  @apply bg-slate-950/60 backdrop-blur-xl border-b border-white/5;
+  @apply bg-slate-950/70 backdrop-blur-2xl border-b border-white/5 shadow-2xl;
 }
 
 .glass-card {
-  @apply bg-slate-900/40 backdrop-blur-md border border-white/10 rounded-2xl transition-all duration-300;
+  @apply bg-slate-900/30 backdrop-blur-xl border border-white/10 rounded-3xl transition-all duration-500;
 }
 
 .glass-card:hover {
-  @apply border-white/20 bg-slate-900/60 shadow-[0_8px_30px_rgb(0,0,0,0.12)];
+  @apply border-accent-cyan/30 bg-slate-900/50 shadow-[0_20px_50px_rgba(0,0,0,0.3)] -translate-y-1;
 }
 
 .glow-border {
-  @apply border border-accent-cyan/30 shadow-[0_0_15px_rgba(34,211,238,0.1)];
+  @apply border border-accent-cyan/30 shadow-[0_0_20px_rgba(34,211,238,0.15)];
 }
 
 .mission-control-gradient {
@@ -68,11 +78,11 @@ body {
 }
 
 .btn-primary {
-  @apply px-6 py-3 bg-accent-cyan text-slate-950 font-bold rounded-full uppercase tracking-tighter transition-all duration-200 active:scale-95 hover:bg-white hover:shadow-[0_0_20px_rgba(34,211,238,0.4)];
+  @apply px-8 py-4 bg-accent-cyan text-slate-950 font-black rounded-2xl uppercase tracking-[0.1em] text-[11px] transition-all duration-300 active:scale-95 hover:bg-white hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-slate-950 flex items-center justify-center gap-2;
 }
 
 .btn-secondary {
-  @apply px-6 py-3 border border-white/10 text-white font-bold rounded-full uppercase tracking-tighter transition-all duration-200 active:scale-95 hover:bg-white/5 hover:border-white/30;
+  @apply px-8 py-4 bg-slate-950 border border-white/10 text-white font-black rounded-2xl uppercase tracking-[0.1em] text-[11px] transition-all duration-300 active:scale-95 hover:bg-white/5 hover:border-white/30 focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-slate-950 flex items-center justify-center gap-2;
 }
 
 .nav-link {
@@ -99,4 +109,20 @@ body {
 
 ::-webkit-scrollbar-thumb {
   @apply bg-slate-800 rounded-full hover:bg-slate-700 transition-colors;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-slate-700/50 rounded-full hover:bg-slate-600/70;
+}
+
+.page-transition {
+  @apply animate-fade-in;
 }

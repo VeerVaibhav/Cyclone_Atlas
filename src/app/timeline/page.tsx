@@ -54,7 +54,11 @@ export default function TimelinePage() {
                 key={cyclone.name} 
                 cyclone={cyclone} 
                 isActive={selectedCyclone.name === cyclone.name}
-                onClick={() => setSelectedCyclone(cyclone)}
+                onClick={() => {
+                    if (selectedCyclone.name !== cyclone.name) {
+                        setSelectedCyclone(cyclone);
+                    }
+                }}
               />
             ))}
           </div>
@@ -62,7 +66,7 @@ export default function TimelinePage() {
 
         {/* Right: Detail View */}
         <div className="flex-1 space-y-8 h-full overflow-y-auto pr-4 custom-scrollbar pb-20">
-            <div className="space-y-8 animate-slide-up">
+            <div key={selectedCyclone.name} className="space-y-8 animate-slide-up">
               {/* Detail Header */}
               <div className="glass-card p-10 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
@@ -79,7 +83,7 @@ export default function TimelinePage() {
                             {selectedCyclone.date}
                         </div>
                     </div>
-                    <h2 className="text-7xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none">
+                    <h2 className="text-7xl md:text-8xl font-black text-white uppercase tracking-tighter leading-none group-hover:text-accent-cyan transition-colors duration-500">
                       {selectedCyclone.name}
                     </h2>
                     <div className="flex flex-wrap gap-4">
@@ -87,10 +91,10 @@ export default function TimelinePage() {
                       <DetailBadge icon={<MapPin className="w-4 h-4" />} label="Primary Landfall" value={selectedCyclone.landfall} />
                     </div>
                   </div>
-                  <div className="text-right p-6 bg-slate-950/50 rounded-3xl border border-white/5 backdrop-blur-md">
+                  <div className="text-right p-6 bg-slate-950/50 rounded-3xl border border-white/5 backdrop-blur-md shadow-2xl">
                     <div className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em] font-black mb-2">Threat Assessment</div>
                     <div className={cn(
-                        "text-3xl font-black uppercase tracking-tighter",
+                        "text-3xl font-black uppercase tracking-tighter transition-all duration-500",
                         selectedCyclone.level === "Critical" ? "text-red-500 drop-shadow-[0_0_10px_rgba(239,68,68,0.3)]" : 
                         selectedCyclone.level === "Extreme" ? "text-orange-500" : "text-yellow-500"
                     )}>
@@ -109,13 +113,16 @@ export default function TimelinePage() {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tactical Overlay</span>
                         </div>
                     </div>
-                    <CoastalMap highlightedStates={selectedCyclone.states} />
+                    <CoastalMap 
+                        highlightedStates={selectedCyclone.states} 
+                        activeCyclone={selectedCyclone}
+                    />
                 </div>
 
                 <div className="space-y-8">
-                  <div className="glass-card p-8">
+                  <div className="glass-card p-8 group hover:border-accent-cyan/20 transition-all">
                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-3">
-                        <Info className="w-4 h-4 text-accent-cyan" />
+                        <Info className="w-4 h-4 text-accent-cyan group-hover:animate-pulse" />
                         Intelligence Summary
                     </h3>
                     <p className="text-slate-300 leading-relaxed font-medium text-lg">
@@ -127,12 +134,12 @@ export default function TimelinePage() {
                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-6">Critical Impact Logs</h3>
                     <div className="grid grid-cols-1 gap-4">
                       {selectedCyclone.impact.map(item => (
-                        <div key={item} className="flex items-center justify-between p-4 bg-slate-950/50 border border-white/5 rounded-2xl group hover:border-accent-cyan/30 transition-all hover:translate-x-1">
+                        <div key={item} className="flex items-center justify-between p-4 bg-slate-950/50 border border-white/5 rounded-2xl group/item hover:border-accent-cyan/30 transition-all hover:translate-x-1 cursor-default">
                            <div className="flex items-center gap-4">
-                               <div className="w-2 h-2 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.5)] group-hover:scale-125 transition-transform" />
-                               <span className="text-sm font-bold text-slate-300 uppercase tracking-tight">{item}</span>
+                               <div className="w-2 h-2 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.5)] group-hover/item:scale-125 transition-transform" />
+                               <span className="text-sm font-bold text-slate-300 uppercase tracking-tight group-hover/item:text-white transition-colors">{item}</span>
                            </div>
-                           <ChevronRight className="w-4 h-4 text-slate-700 group-hover:text-accent-cyan transition-colors" />
+                           <ChevronRight className="w-4 h-4 text-slate-700 group-hover/item:text-accent-cyan transition-colors" />
                         </div>
                       ))}
                     </div>
@@ -141,17 +148,23 @@ export default function TimelinePage() {
               </div>
             </div>
         </div>
+
       </main>
     </div>
   );
 }
 
-function TimelineCard({ cyclone, isActive, onClick }: { cyclone: any; isActive: boolean; onClick: () => void }) {
+function TimelineCard({ cyclone, isActive, onClick }: { cyclone: { name: string; year: number; date: string; states: string[]; intensity: string; landfall: string; description: string; impact: string[], level: string }; isActive: boolean; onClick: () => void }) {
   return (
     <div 
       onClick={onClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      tabIndex={0}
+      role="button"
+      aria-pressed={isActive}
+      aria-label={`Select Cyclone ${cyclone.name}, ${cyclone.year}`}
       className={cn(
-        "p-5 rounded-2xl border transition-all cursor-pointer group active:scale-95",
+        "p-5 rounded-2xl border transition-all cursor-pointer group active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50",
         isActive 
         ? "bg-accent-cyan text-slate-950 border-accent-cyan shadow-xl shadow-accent-cyan/10" 
         : "bg-slate-900/40 border-white/5 hover:border-white/20 hover:bg-slate-900/60"

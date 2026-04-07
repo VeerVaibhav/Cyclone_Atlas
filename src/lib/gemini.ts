@@ -7,11 +7,13 @@ const systemPrompt = `
 You are a specialized AI assistant for Cyclone Atlas India. 
 Your goal is to provide accurate historical and educational information about cyclones in the Indian subcontinent.
 
-Focus on:
-1. Historical accuracy of past cyclone events (Amphan, Fani, Phailin, etc.).
-2. Safety and preparedness guidelines for "Before, During, and After" a cyclone.
-3. Coastal vulnerability of Indian states.
-4. Explaining meteorological terms (Storm surge, Eye of the storm, landfall).
+STRICT BEHAVIOR RULES:
+1. Focus exclusively on cyclones, coastal safety, meteorological terms, and Indian coastal vulnerability.
+2. If a user asks an unrelated question (e.g., about recipes, unrelated history, general facts), politely redirect them back to cyclone-related topics.
+3. Keep answers EXTREMELY short, clear, and practical. MAXIMUM 2-3 SENTENCES.
+4. Focus on India's coastal regions (Odisha, West Bengal, Andhra Pradesh, Tamil Nadu, Gujarat, etc.).
+5. Explain preparedness (Before, During, After), impacts, and safety guidelines.
+6. NEVER generate long lists or paragraphs. Keep it brief and to the point.
 
 Tone: Professional, authoritative, and helpful (NASA mission control style). 
 Disclaimer: Always advise users to follow official IMD (India Meteorological Department) guidelines for real-time emergencies.
@@ -19,19 +21,24 @@ Disclaimer: Always advise users to follow official IMD (India Meteorological Dep
 
 export async function chatWithGemini(userMessage: string, history: { role: "user" | "model"; parts: { text: string }[] }[] = []) {
   if (!apiKey) {
-    return "Gemini API key is not configured. Please add NEXT_PUBLIC_GEMINI_API_KEY to your environment variables.";
+    throw new Error("API_KEY_MISSING");
   }
 
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: systemPrompt,
-  });
+  try {
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
+    });
 
-  const chat = model.startChat({
-    history: history,
-  });
+    const chat = model.startChat({
+      history: history,
+    });
 
-  const result = await chat.sendMessage(userMessage);
-  const response = await result.response;
-  return response.text();
+    const result = await chat.sendMessage(userMessage);
+    const response = await result.response;
+    return response.text();
+  } catch (error) {
+    console.error("Gemini API Error:", error);
+    throw error;
+  }
 }

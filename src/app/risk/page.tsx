@@ -1,48 +1,90 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import ChatAssistant from "@/components/ChatAssistant";
+import Link from "next/link";
 import coastalData from "@/data/coastalRegions.json";
-import { Radar, MapPin, Calendar, Info, AlertCircle, TrendingUp, Compass, ChevronRight } from "lucide-react";
+import cyclonesData from "@/data/cyclones.json";
+import { Radar, Info, AlertCircle, TrendingUp, Compass, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface RiskResult {
+  score: number;
+  status: string;
+  region: string;
+  historicalFreq: number;
+  seasonalVuln: number;
+  coastalExposure: number;
+}
 
 export default function RiskPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [selectedState, setSelectedState] = useState(coastalData[0].state);
   const [selectedMonth, setSelectedMonth] = useState("April");
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [calculatedRisk, setCalculatedRisk] = useState<RiskResult | null>(null);
 
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  const riskAssessment = useMemo(() => {
-    const region = coastalData.find(r => r.state === selectedState);
-    if (!region) return null;
+  const computeRisk = useCallback((state: string, month: string): RiskResult => {
+    const region = coastalData.find(r => r.state === state);
+    if (!region) return { score: 0, status: "Low", region: "Unknown", historicalFreq: 0, seasonalVuln: 0, coastalExposure: 0 };
 
+    // Historical frequency: count how many cyclones hit this state
+    const cycloneCount = cyclonesData.filter(c => c.states.includes(state)).length;
+    const historicalFreq = Math.min(Math.round((cycloneCount / cyclonesData.length) * 100), 100);
+
+    // Base score from region risk level
     let baseScore = 0;
     switch (region.riskLevel) {
-        case "Very High": baseScore = 80; break;
-        case "High": baseScore = 60; break;
-        case "Medium": baseScore = 40; break;
-        case "Low": baseScore = 20; break;
+      case "Very High": baseScore = 80; break;
+      case "High": baseScore = 60; break;
+      case "Medium": baseScore = 40; break;
+      case "Low": baseScore = 20; break;
     }
 
+    // Seasonal vulnerability
     const highRiskMonths = ["May", "June", "October", "November"];
-    const moderateRiskMonths = ["April", "December"];
+    const moderateRiskMonths = ["April", "September", "December"];
     
-    let seasonalMultiplier = 1;
-    if (highRiskMonths.includes(selectedMonth)) seasonalMultiplier = 1.2;
-    else if (moderateRiskMonths.includes(selectedMonth)) seasonalMultiplier = 1.1;
-    else seasonalMultiplier = 0.8;
+    let seasonalMultiplier = 0.6;
+    if (highRiskMonths.includes(month)) seasonalMultiplier = 1.3;
+    else if (moderateRiskMonths.includes(month)) seasonalMultiplier = 1.0;
 
-    const finalScore = Math.min(Math.round(baseScore * seasonalMultiplier), 100);
-    
+    const seasonalVuln = Math.round(seasonalMultiplier * 70);
+
+    // Coastal exposure
+    const coastalExposure = region.region === "East Coast" ? 88 : region.region === "Islands" ? 55 : 62;
+
+    // Weighted score calculation
+    const score = Math.min(Math.round(
+      historicalFreq * 0.4 +
+      baseScore * seasonalMultiplier * 0.3 +
+      coastalExposure * 0.2 +
+      seasonalVuln * 0.1
+    ), 100);
+
     let status = "Low";
-    if (finalScore > 80) status = "Very High";
-    else if (finalScore > 60) status = "High";
-    else if (finalScore > 40) status = "Moderate";
+    if (score >= 80) status = "Critical";
+    else if (score >= 60) status = "High";
+    else if (score >= 30) status = "Moderate";
 
-    return { score: finalScore, status, region: region.region };
-  }, [selectedState, selectedMonth]);
+    return { score, status, region: region.region, historicalFreq, seasonalVuln, coastalExposure };
+  }, []);
+
+  // Compute on mount and when dependencies change
+  useEffect(() => {
+    setCalculatedRisk(computeRisk(selectedState, selectedMonth));
+  }, [computeRisk, selectedState, selectedMonth]);
+
+  const handleCalculate = () => {
+    setIsCalculating(true);
+    setTimeout(() => {
+      setCalculatedRisk(computeRisk(selectedState, selectedMonth));
+      setIsCalculating(false);
+    }, 800);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -97,6 +139,24 @@ export default function RiskPage() {
                     {months.map(m => <option key={m} value={m} className="bg-slate-900">{m}</option>)}
                   </select>
                 </div>
+
+                <button 
+                    onClick={handleCalculate}
+                    disabled={isCalculating}
+                    className="w-full btn-primary py-4 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+                >
+                    {isCalculating ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                            <span>Processing Data...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Compass className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" />
+                            <span>Calculate Risk Index</span>
+                        </>
+                    )}
+                </button>
               </div>
 
               <div className="pt-8 border-t border-white/5">
@@ -125,39 +185,52 @@ export default function RiskPage() {
                     <circle 
                         cx="144" cy="144" r="120" 
                         fill="none" 
-                        stroke="#22d3ee" 
+                        stroke={isCalculating ? "#334155" : 
+                          (calculatedRisk?.score ?? 0) >= 80 ? "#ef4444" :
+                          (calculatedRisk?.score ?? 0) >= 60 ? "#f97316" :
+                          (calculatedRisk?.score ?? 0) >= 30 ? "#eab308" : "#22d3ee"
+                        }
                         strokeWidth="24" 
                         strokeDasharray="754"
-                        strokeDashoffset={754 - (754 * (riskAssessment?.score || 0) / 100)}
+                        strokeDashoffset={754 - (754 * (calculatedRisk?.score || 0) / 100)}
                         className="transition-all duration-1000 ease-out"
                         strokeLinecap="round"
-                        style={{ filter: 'drop-shadow(0 0 10px rgba(34, 211, 238, 0.4))' }}
+                        style={{ filter: isCalculating ? 'none' : `drop-shadow(0 0 10px ${
+                          (calculatedRisk?.score ?? 0) >= 80 ? 'rgba(239,68,68,0.4)' :
+                          (calculatedRisk?.score ?? 0) >= 60 ? 'rgba(249,115,22,0.4)' :
+                          'rgba(34, 211, 238, 0.4)'
+                        })` }}
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <div className="text-6xl font-black text-white tracking-tighter">{riskAssessment?.score}</div>
+                    <div className={cn(
+                        "text-6xl font-black tracking-tighter transition-all duration-500",
+                        isCalculating ? "text-slate-700 scale-90" : "text-white scale-100"
+                    )}>
+                        {isCalculating ? "--" : calculatedRisk?.score}
+                    </div>
                     <div className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Risk Index</div>
                   </div>
                 </div>
 
                 <div className="space-y-8">
-                  <div>
+                  <div className={cn("transition-all duration-500", isCalculating ? "opacity-30 translate-x-4" : "opacity-100 translate-x-0")}>
                     <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-3">Target: {selectedState}</h3>
                     <div className={cn(
                         "text-5xl font-black uppercase tracking-tighter leading-none",
-                        riskAssessment?.status === "Very High" ? "text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]" : 
-                        riskAssessment?.status === "High" ? "text-orange-500" : 
-                        riskAssessment?.status === "Moderate" ? "text-yellow-500" : "text-emerald-500"
+                        calculatedRisk?.status === "Critical" ? "text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.3)]" : 
+                        calculatedRisk?.status === "High" ? "text-orange-500" : 
+                        calculatedRisk?.status === "Moderate" ? "text-yellow-500" : "text-emerald-500"
                     )}>
-                        {riskAssessment?.status} <br />
+                        {calculatedRisk?.status} <br />
                         <span className="text-white opacity-40">Advisory</span>
                     </div>
                   </div>
 
                   <div className="space-y-6 pt-4">
-                    <RiskFactor label="Historical Frequency" score="85%" color="bg-accent-cyan" />
-                    <RiskFactor label="Seasonal Vulnerability" score={riskAssessment?.score + "%"} color="bg-accent-blue" />
-                    <RiskFactor label="Coastal Exposure" score={riskAssessment?.region === "East Coast" ? "90%" : "60%"} color="bg-slate-500" />
+                    <RiskFactor label="Historical Frequency" score={isCalculating ? 0 : (calculatedRisk?.historicalFreq ?? 0)} color="bg-accent-cyan" />
+                    <RiskFactor label="Seasonal Vulnerability" score={isCalculating ? 0 : (calculatedRisk?.seasonalVuln ?? 0)} color="bg-accent-blue" />
+                    <RiskFactor label="Coastal Exposure" score={isCalculating ? 0 : (calculatedRisk?.coastalExposure ?? 0)} color="bg-slate-500" />
                   </div>
                 </div>
               </div>
@@ -172,9 +245,9 @@ export default function RiskPage() {
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.2em]">Regional Logic</h4>
                     </div>
                     <p className="text-slate-400 leading-relaxed font-medium">
-                        The {riskAssessment?.region} sectors possess unique thermal signatures. 
+                        The {calculatedRisk?.region} sectors possess unique thermal signatures. 
                         In {selectedMonth}, sea-surface temperature anomalies significantly influence 
-                        cyclogenesis likelihood, leading to {riskAssessment && riskAssessment.score > 60 ? "critical" : "nominal"} patterns.
+                        cyclogenesis likelihood, leading to {calculatedRisk && calculatedRisk.score > 60 ? "critical" : "nominal"} patterns.
                     </p>
                 </div>
                 <div className="glass-card p-8 border-l-4 border-l-orange-500 group">
@@ -185,13 +258,13 @@ export default function RiskPage() {
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.2em]">Safety Protocol</h4>
                     </div>
                     <p className="text-slate-400 leading-relaxed font-medium mb-6">
-                        During periods of {riskAssessment?.status.toLowerCase()} risk, tactical readiness 
+                        During periods of {calculatedRisk?.status?.toLowerCase()} risk, tactical readiness 
                         should be prioritized for coastal communities.
                     </p>
-                    <button className="flex items-center gap-2 text-[10px] font-black text-accent-cyan uppercase tracking-[0.3em] hover:translate-x-1 transition-all">
+                    <Link href="/precaution" className="flex items-center gap-2 text-[10px] font-black text-accent-cyan uppercase tracking-[0.3em] hover:translate-x-1 transition-all">
                         View Precaution Guide
                         <ChevronRight className="w-3 h-3" />
-                    </button>
+                    </Link>
                 </div>
             </div>
           </div>
@@ -201,17 +274,17 @@ export default function RiskPage() {
   );
 }
 
-function RiskFactor({ label, score, color }: { label: string; score: string; color: string }) {
+function RiskFactor({ label, score, color }: { label: string; score: number; color: string }) {
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center px-1">
         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-        <span className="text-[10px] font-mono text-white font-black">{score}</span>
+        <span className="text-[10px] font-mono text-white font-black">{score}%</span>
       </div>
       <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden border border-white/5">
         <div 
-            className={cn("h-full transition-all duration-1000 ease-out", color)}
-            style={{ width: score }}
+            className={cn("h-full transition-all duration-1000 ease-out rounded-full", color)}
+            style={{ width: `${score}%` }}
         />
       </div>
     </div>

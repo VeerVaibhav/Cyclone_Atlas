@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Thermometer, Waves, CloudRain } from "lucide-react";
+import { Thermometer, Waves, CloudRain } from "lucide-react";
 
 export default function InsightCards() {
   return (

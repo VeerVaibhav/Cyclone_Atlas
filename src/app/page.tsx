@@ -7,13 +7,14 @@ import CoastalMap from "@/components/CoastalMap";
 import ChatAssistant from "@/components/ChatAssistant";
 import InsightCards from "@/components/InsightCards";
 import cyclonesData from "@/data/cyclones.json";
-import { Wind, Calendar, MapPin, Activity, ChevronRight, LayoutDashboard, Database } from "lucide-react";
+import { Wind, Calendar, MapPin, Activity, ChevronRight, LayoutDashboard, X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeCyclone, setActiveCyclone] = useState(cyclonesData[0]);
+  const [selectedCyclone, setSelectedCyclone] = useState<{ name: string; year: number; intensity: string; landfall: string; date: string; states: string[]; description: string; impact: string[]; level: string } | null>(null);
   
   const recentCyclones = cyclonesData.slice(0, 4);
 
@@ -26,33 +27,6 @@ export default function Home() {
       <main className="flex-1 pt-20">
         <Hero />
         
-        {/* Quick Access / Event Navigator */}
-        <section className="bg-slate-950 border-y border-white/5 py-4">
-            <div className="max-w-7xl mx-auto px-6 flex items-center gap-8 overflow-x-auto no-scrollbar">
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                    <Database className="w-4 h-4 text-slate-500" />
-                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest font-bold">Quick Select:</span>
-                </div>
-                <div className="flex items-center gap-4">
-                    {recentCyclones.map((cyclone) => (
-                        <button 
-                            key={cyclone.name}
-                            onClick={() => setActiveCyclone(cyclone)}
-                            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-tight transition-all border ${
-                                activeCyclone.name === cyclone.name 
-                                ? "bg-accent-cyan text-slate-950 border-accent-cyan shadow-[0_0_15px_rgba(34,211,238,0.3)]" 
-                                : "bg-slate-900 text-slate-400 border-white/5 hover:border-white/20 hover:text-white"
-                            }`}
-                        >
-                            {cyclone.name} '{cyclone.year % 100}
-                        </button>
-                    ))}
-                </div>
-                <Link href="/archive" className="ml-auto text-[10px] font-mono text-accent-cyan uppercase tracking-widest hover:underline whitespace-nowrap">
-                    View Full Archive →
-                </Link>
-            </div>
-        </section>
 
         <div className="max-w-7xl mx-auto px-6 py-24 space-y-32">
             {/* Tactical Dashboard Section */}
@@ -86,13 +60,16 @@ export default function Home() {
                                 Coastal Risk <span className="text-accent-cyan">Visualization</span>
                             </h3>
                         </div>
-                        <CoastalMap highlightedStates={activeCyclone.states} />
+                        <CoastalMap 
+                            highlightedStates={activeCyclone.states} 
+                            activeCyclone={activeCyclone}
+                        />
                     </div>
                     
                     <div className="space-y-8">
                         <InsightCards />
                         
-                        <div className="glass-card p-8 border-l-4 border-l-red-500 relative overflow-hidden group">
+                        <div className="glass-card p-8 border-l-4 border-l-red-500 relative overflow-hidden group cursor-pointer active:scale-[0.98]" onClick={() => setSelectedCyclone(activeCyclone)}>
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
                                 <Activity className="w-16 h-16" />
                             </div>
@@ -104,10 +81,10 @@ export default function Home() {
                                 {activeCyclone.states[0]} region historically shows 
                                 heightened landfall sensitivity during {activeCyclone.date.split(' ')[0]}.
                             </p>
-                            <Link href="/risk" className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:text-accent-cyan transition-colors flex items-center gap-2 group/link">
+                            <button className="mt-6 text-[10px] font-black uppercase tracking-[0.2em] text-white group-hover:text-accent-cyan transition-colors flex items-center gap-2 group/link">
                                 Detailed Risk Report
                                 <ChevronRight className="w-3 h-3 group-hover/link:translate-x-1 transition-transform" />
-                            </Link>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -125,8 +102,9 @@ export default function Home() {
                             Recent <span className="text-slate-500">Events</span>
                         </h2>
                     </div>
-                    <Link href="/archive" className="btn-secondary text-[10px] px-6 py-2.5">
+                    <Link href="/archive" className="btn-secondary text-[10px] px-6 py-2.5 flex items-center gap-2 group">
                         Access Full Database
+                        <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
                     </Link>
                 </div>
 
@@ -134,8 +112,15 @@ export default function Home() {
                     {recentCyclones.map((cyclone) => (
                         <div 
                             key={cyclone.name} 
-                            className={`glass-card p-6 cursor-pointer group ${activeCyclone.name === cyclone.name ? 'ring-1 ring-accent-cyan/50' : ''}`}
-                            onClick={() => setActiveCyclone(cyclone)}
+                            className={`glass-card p-6 cursor-pointer group active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(34,211,238,0.1)] focus-within:ring-2 focus-within:ring-accent-cyan/50 outline-none focus:ring-2 focus:ring-accent-cyan/50 ${activeCyclone.name === cyclone.name ? 'ring-1 ring-accent-cyan/50' : ''}`}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`View details for Cyclone ${cyclone.name}`}
+                            onClick={() => {
+                                setActiveCyclone(cyclone);
+                                setSelectedCyclone(cyclone);
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveCyclone(cyclone); setSelectedCyclone(cyclone); } }}
                         >
                             <div className="flex justify-between items-start mb-6">
                                 <div className={cn(
@@ -171,6 +156,98 @@ export default function Home() {
         </div>
       </main>
 
+      {/* Detail Modal Overlay (Shared with Archive) */}
+      {selectedCyclone && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-xl animate-fade-in">
+          <div className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border-white/10 animate-slide-up relative">
+            <button 
+                onClick={() => setSelectedCyclone(null)}
+                className="absolute top-6 right-6 p-3 bg-slate-950 rounded-full border border-white/10 text-slate-500 hover:text-white hover:border-white/30 transition-all z-10 active:scale-90"
+            >
+                <X className="w-5 h-5" />
+            </button>
+            
+            <div className="flex-1 overflow-y-auto p-12 space-y-12 no-scrollbar">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <span className="px-3 py-1 bg-accent-cyan/10 text-accent-cyan text-[11px] font-mono font-black uppercase tracking-[0.2em] border border-accent-cyan/20 rounded-lg">
+                            INTEL_LOG_{selectedCyclone.name.substring(0,3).toUpperCase()}
+                        </span>
+                        <div className="flex items-center gap-2 text-slate-500 font-bold text-[11px] uppercase tracking-widest">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {selectedCyclone.date}
+                        </div>
+                    </div>
+                    <h2 className="text-7xl font-black text-white uppercase tracking-tighter leading-none">
+                      {selectedCyclone.name}
+                    </h2>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                        <div className="space-y-4">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Environmental Impact</h3>
+                            <p className="text-slate-300 leading-relaxed font-medium text-lg">
+                                {selectedCyclone.description}
+                            </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-6 bg-slate-950/50 rounded-2xl border border-white/5">
+                                <div className="text-[10px] font-mono text-slate-600 uppercase tracking-widest font-black mb-2">Peak Intensity</div>
+                                <div className="text-sm font-black text-accent-cyan uppercase tracking-tight">{selectedCyclone.intensity}</div>
+                            </div>
+                            <div className="p-6 bg-slate-950/50 rounded-2xl border border-white/5">
+                                <div className="text-[10px] font-mono text-slate-600 uppercase tracking-widest font-black mb-2">Primary Sector</div>
+                                <div className="text-sm font-black text-white uppercase tracking-tight">{selectedCyclone.landfall}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-8">
+                        <div className="space-y-4">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Intelligence Logs</h3>
+                            <div className="space-y-3">
+                                {selectedCyclone.impact.map((log: string) => (
+                                    <div key={log} className="flex items-center gap-4 p-4 bg-slate-950/50 border border-white/5 rounded-xl group hover:border-accent-cyan/30 transition-all">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-tight group-hover:text-white transition-colors">{log}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-2xl">
+                            <h4 className="text-[10px] font-black text-red-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <Wind className="w-3.5 h-3.5" />
+                                Threat Level: {selectedCyclone.level}
+                            </h4>
+                            <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                                Tactical evaluation shows high coastal vulnerability and severe infrastructure impact during the event window.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="p-8 bg-slate-950/80 border-t border-white/5 flex justify-end gap-4">
+                <button 
+                    onClick={() => setSelectedCyclone(null)}
+                    className="btn-secondary text-[10px] px-8 py-3"
+                >
+                    Dismiss Analysis
+                </button>
+                <Link 
+                    href="/timeline" 
+                    className="btn-primary text-[10px] px-8 py-3 flex items-center gap-2"
+                >
+                    View in Timeline
+                    <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer className="border-t border-white/5 py-20 px-6 mt-32 bg-slate-950/30">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
           <div className="lg:col-span-2 space-y-8">
@@ -181,7 +258,7 @@ export default function Home() {
                 <span className="text-2xl font-black uppercase tracking-tighter text-white">Cyclone <span className="text-accent-cyan">Atlas</span></span>
             </div>
             <p className="max-w-md text-slate-500 text-sm leading-relaxed font-medium">
-                India's specialized data visualization platform for coastal storm monitoring and safety intelligence. 
+                India&apos;s specialized data visualization platform for coastal storm monitoring and safety intelligence. 
                 Designed for tactical awareness and climate research.
             </p>
             <div className="flex gap-4">
@@ -212,6 +289,17 @@ export default function Home() {
   );
 }
 
+const footerRouteMap: Record<string, string> = {
+    "Timeline": "/timeline",
+    "Risk Outlook": "/risk",
+    "Archive": "/archive",
+    "Map": "/",
+    "Precaution": "/precaution",
+    "Emergency": "/precaution",
+    "API": "/",
+    "IMD Info": "/",
+};
+
 function FooterColumn({ title, links }: { title: string; links: string[] }) {
     return (
         <div className="space-y-6">
@@ -219,7 +307,7 @@ function FooterColumn({ title, links }: { title: string; links: string[] }) {
             <ul className="space-y-3">
                 {links.map(link => (
                     <li key={link}>
-                        <Link href="#" className="text-xs text-slate-600 hover:text-accent-cyan transition-colors font-bold uppercase tracking-tight">{link}</Link>
+                        <Link href={footerRouteMap[link] || "/"} className="text-xs text-slate-600 hover:text-accent-cyan transition-colors font-bold uppercase tracking-tight">{link}</Link>
                     </li>
                 ))}
             </ul>

@@ -25,7 +25,7 @@ export default function Hero() {
         </h1>
         
         <p className="text-lg md:text-xl text-slate-400 font-medium leading-relaxed mb-12 max-w-2xl mx-auto">
-          India's high-fidelity storm intelligence dashboard. Explore historical data, 
+          India&apos;s high-fidelity storm intelligence dashboard. Explore historical data, 
           understand seasonal patterns, and access localized safety protocols.
         </p>
         
