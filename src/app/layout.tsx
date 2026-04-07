@@ -8,8 +8,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-background text-foreground">
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground" suppressHydrationWarning>
         <PageTransition>
           {children}
         </PageTransition>

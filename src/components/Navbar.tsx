@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 
 export default function Navbar({ onOpenChat }: { onOpenChat: () => void }) {
   const pathname = usePathname();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-[100] glass-navbar">
@@ -35,8 +40,15 @@ export default function Navbar({ onOpenChat }: { onOpenChat: () => void }) {
 
         <div className="flex items-center gap-4">
           <button 
-            onClick={onOpenChat}
-            className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-sm font-bold text-slate-300 hover:text-accent-cyan hover:border-accent-cyan/50 transition-all active:scale-95 animate-pulse-glow focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-slate-950"
+            onClick={() => {
+              window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+              onOpenChat();
+            }}
+            disabled={!mounted}
+            className={cn(
+               "flex items-center gap-2 px-5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-sm font-bold text-slate-300 hover:text-accent-cyan hover:border-accent-cyan/50 transition-all active:scale-95 animate-pulse-glow focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-slate-950",
+               !mounted && "opacity-50"
+            )}
           >
             <MessageSquare className="w-4 h-4" />
             <span>Ask AI</span>

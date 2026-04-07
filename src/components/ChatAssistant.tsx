@@ -51,7 +51,7 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
 
   return (
     <div
-      className="fixed right-0 top-0 h-full w-full md:w-[400px] bg-slate-950/80 backdrop-blur-2xl border-l border-white/5 z-[150] flex flex-col shadow-[-20px_0_50px_rgba(0,0,0,0.5)] animate-[slide-left_0.4s_ease-out]"
+      className="fixed right-8 bottom-8 z-[150] flex flex-col w-[calc(100%-4rem)] md:w-[420px] h-[650px] max-h-[calc(100vh-8rem)] bg-[#020617]/95 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden animate-slide-up"
     >
       {/* Header */}
       <div className="p-6 border-b border-white/5 flex items-center justify-between bg-slate-950/40">
@@ -172,12 +172,6 @@ export default function ChatAssistant({ isOpen, onClose }: { isOpen: boolean; on
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes slide-left {
-          from { transform: translateX(100%); }
-          to { transform: translateX(0); }
-        }
-      `}</style>
     </div>
   );
 }
